@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+app:
+  telegram:
+    chat-id: ${TG_CHAT_ID}
+    bot:
+      token: ${TG_BOT_TOKEN}
+      url: https://api.telegram.org/bot
