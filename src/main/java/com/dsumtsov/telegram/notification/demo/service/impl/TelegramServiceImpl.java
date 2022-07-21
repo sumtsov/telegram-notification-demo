@@ -4,8 +4,10 @@ import com.dsumtsov.telegram.notification.demo.config.properties.TelegramPropert
 import com.dsumtsov.telegram.notification.demo.domain.Document;
 import com.dsumtsov.telegram.notification.demo.service.TelegramService;
 import com.dsumtsov.telegram.notification.demo.util.DateUtils;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -44,18 +46,20 @@ public class TelegramServiceImpl implements TelegramService {
         formData.set("caption", String.format("%s report", DateUtils.getCurrentDateFormatted()));
 
         try {
-            JsonObject response = webClient.post()
+            String response = webClient.post()
                     .uri("/sendDocument")
                     .body(BodyInserters.fromMultipartData(formData))
                     .retrieve()
-                    .bodyToMono(JsonObject.class)
+                    .bodyToMono(String.class)
                     .block();
 
-            if (Objects.isNull(response)) {
+            JsonObject jsonObject = new Gson().fromJson(response, JsonObject.class);
+
+            if (StringUtils.isBlank(response)) {
                 log.error("Failed to send message, received empty response");
-            } else if (!response.get("ok").getAsBoolean()) {
+            } else if (!jsonObject.get("ok").getAsBoolean()) {
                 log.error("Failed to send message, received error in response: {}",
-                        response.get("description").getAsString());
+                        jsonObject.get("description").getAsString());
             } else {
                 log.info("Message sent successfully");
             }
